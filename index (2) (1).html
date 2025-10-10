@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MegaPrep | Mega Test 01 Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body {
+  margin:0; font-family: 'Segoe UI', sans-serif;
+  background:#000; color:#0ff; overflow:hidden;
+}
+header {
+  text-align:center; padding:20px; font-size:32px; font-weight:700;
+  color:#0ff; text-shadow:0 0 20px #0ff,0 0 40px #0aa;
+  border-bottom:2px solid #0ff;
+}
+.container {
+  padding:20px; display:flex; flex-direction:column; align-items:center;
+}
+.top-students {
+  display:flex; justify-content:center; gap:40px; margin-top:20px;
+}
+.card {
+  background:linear-gradient(145deg,#001a1a,#002b33); padding:20px 40px;
+  border-radius:16px; box-shadow:0 0 30px #0ff50; text-align:center;
+  color:#0ff; font-weight:700; transition:0.3s; position:relative;
+}
+.card::before {
+  content:""; position:absolute; top:-5px; left:-5px; right:-5px; bottom:-5px;
+  border-radius:20px; box-shadow:0 0 30px #0ff inset; opacity:0.6;
+  animation: glow 2s infinite alternate;
+}
+@keyframes glow {
+  0% { box-shadow:0 0 20px #0ff inset; }
+  100% { box-shadow:0 0 50px #0ff inset; }
+}
+.card h2 {font-size:28px; margin:10px 0;}
+.card span {font-size:22px; color:#fff;}
+.table-container {
+  width:90%; height:400px; overflow:hidden; margin-top:30px;
+  border:1px solid #0ff; border-radius:12px; box-shadow:0 0 30px #0aa50;
+  position:relative;
+}
+table {
+  width:100%; border-collapse:collapse; text-align:center; color:#fff;
+}
+thead {
+  background:#002b36; font-size:18px; position:sticky; top:0; z-index:1;
+}
+th, td {padding:8px; border-bottom:1px solid #0ff30;}
+tr:nth-child(even){background:rgba(0,255,255,0.05);}
+.chart-area {
+  width:90%; max-width:1000px; margin-top:40px;
+}
+footer {text-align:center; padding:10px; font-size:14px; color:#07a;}
+</style>
+</head>
+<body>
+<header>🎓 MegaPrep Presents: <span style="color:#0aa">Mega Test 01</span> Dashboard</header>
+
+<div class="container">
+  <div class="top-students" id="topStudents">
+    <div class="card"><h2>🥇 1st</h2><span id="first"></span></div>
+    <div class="card"><h2>🥈 2nd</h2><span id="second"></span></div>
+    <div class="card"><h2>🥉 3rd</h2><span id="third"></span></div>
+  </div>
+
+  <div class="table-container">
+    <table id="resultTable">
+      <thead>
+        <tr>
+          <th>Roll Number</th>
+          <th>Name</th>
+          <th>Correct Answers</th>
+          <th>Wrong Answers</th>
+          <th>Not Answered</th>
+          <th>Total Marks</th>
+          <th>Position</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="chart-area">
+    <canvas id="topChart"></canvas>
+    <canvas id="performanceChart" style="margin-top:40px;"></canvas>
+  </div>
+</div>
+<footer>© MegaPrep 2025 | Smart Result Dashboard</footer>
+
+<script>
+// ===============================
+// 🧩 Data (108+ students)
+// ===============================
+const data = [
+{"Roll Number":"271014","Name":"Adib Asnaf","Correct Answers":"36","Wrong Answers":"4","Not Answered":"0","Total Marks":"175","Position":"1"},
+{"Roll Number":"271147","Name":"Md Wasik Billah","Correct Answers":"34","Wrong Answers":"5","Not Answered":"1","Total Marks":"163.75","Position":"2"},
+{"Roll Number":"271214","Name":"Sheikh Monayem Al Muyed","Correct Answers":"34","Wrong Answers":"5","Not Answered":"1","Total Marks":"163.75","Position":"3"},
+{"Roll Number":"271130","Name":"Md Saif Salman","Correct Answers":"32","Wrong Answers":"5","Not Answered":"3","Total Marks":"153.75","Position":"4"},
+{"Roll Number":"271129","Name":"Md Rownak Kabir Khan Kabbo","Correct Answers":"32","Wrong Answers":"8","Not Answered":"0","Total Marks":"150","Position":"5"},
+{"Roll Number":"271184","Name":"Riddhiman Saha","Correct Answers":"31","Wrong Answers":"9","Not Answered":"0","Total Marks":"143.75","Position":"6"},
+{"Roll Number":"271071","Name":"Ishrak Sarwar","Correct Answers":"28","Wrong Answers":"4","Not Answered":"8","Total Marks":"135","Position":"7"},
+{"Roll Number":"271139","Name":"Md Sifat Uddin Jeon","Correct Answers":"29","Wrong Answers":"11","Not Answered":"0","Total Marks":"131.25","Position":"8"},
+{"Roll Number":"271218","Name":"Snahashis Das","Correct Answers":"28","Wrong Answers":"8","Not Answered":"4","Total Marks":"130","Position":"9"},
+{"Roll Number":"271095","Name":"Mahir Zaman Chowdhury","Correct Answers":"28","Wrong Answers":"12","Not Answered":"0","Total Marks":"125","Position":"10"}
+// ...add remaining 108+ students here
+];
+
+// ===============================
+// Render Top 3 & Charts
+// ===============================
+function renderTopAndCharts(sorted){
+  document.getElementById("first").innerText = `${sorted[0]?.Name||"-"} (${sorted[0]?.["Total Marks"]||"-"})`;
+  document.getElementById("second").innerText = `${sorted[1]?.Name||"-"} (${sorted[1]?.["Total Marks"]||"-"})`;
+  document.getElementById("third").innerText = `${sorted[2]?.Name||"-"} (${sorted[2]?.["Total Marks"]||"-"})`;
+
+  const top5 = sorted.slice(0,5);
+  new Chart(document.getElementById("topChart"),{
+    type:'bar',
+    data:{
+      labels: top5.map(s=>s.Name),
+      datasets:[{label:'Top 5 Marks',data: top5.map(s=>Number(s["Total Marks"])),backgroundColor:'#0ff'}]
+    },
+    options:{plugins:{legend:{labels:{color:'#0ff'}}},scales:{x:{ticks:{color:'#0ff'}},y:{ticks:{color:'#0ff'}}}}
+  });
+
+  const sumCorrect = data.reduce((a,b)=>a+Number(b["Correct Answers"]||0),0);
+  const sumWrong = data.reduce((a,b)=>a+Number(b["Wrong Answers"]||0),0);
+  const sumNot = data.reduce((a,b)=>a+Number(b["Not Answered"]||0),0);
+
+  new Chart(document.getElementById("performanceChart"),{
+    type:'pie',
+    data:{labels:['Correct','Wrong','Not Answered'],datasets:[{data:[sumCorrect,sumWrong,sumNot],backgroundColor:['#0ff','#f55','#fa0']}]},
+    options:{plugins:{legend:{labels:{color:'#0ff'}}}}
+  });
+}
+
+// ===============================
+// TV style smooth scroll
+// ===============================
+const tbody = document.getElementById("tableBody");
+const sortedData = data.sort((a,b)=>Number(b["Total Marks"])-Number(a["Total Marks"]));
+sortedData.forEach(r=>{
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td>${r["Roll Number"]}</td><td>${r["Name"]}</td><td>${r["Correct Answers"]}</td><td>${r["Wrong Answers"]}</td><td>${r["Not Answered"]}</td><td>${r["Total Marks"]}</td><td>${r["Position"]}</td>`;
+  tbody.appendChild(tr);
+});
+
+// Duplicate rows for infinite scroll
+tbody.innerHTML += tbody.innerHTML;
+
+let scrollPos = 0;
+function smoothScroll(){
+  scrollPos += 1;
+  if(scrollPos >= tbody.scrollHeight/2) scrollPos = 0;
+  document.querySelector('.table-container').scrollTop = scrollPos;
+  requestAnimationFrame(smoothScroll);
+}
+
+// ===============================
+// Init
+// ===============================
+renderTopAndCharts(sortedData);
+requestAnimationFrame(smoothScroll);
+</script>
+</body>
+</html>
