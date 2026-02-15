@@ -22,7 +22,6 @@ const storageKeys = {
       activity.unshift({ text, time: new Date().toLocaleString() });
       setData(storageKeys.activity, activity.slice(0, 12));
       renderDashboard();
-      renderOmrHistory();
     }
 
     function navTo(targetId, btn) {
@@ -102,7 +101,6 @@ const storageKeys = {
       renderOmrHistory();
       renderQuestions();
       renderDashboard();
-      renderOmrHistory();
     }
 
     function clearQuestionForm() {
@@ -163,7 +161,6 @@ const storageKeys = {
       addActivity('Deleted a question.');
       renderQuestions();
       renderDashboard();
-      renderOmrHistory();
     };
 
     function exportJson() {
@@ -185,7 +182,6 @@ const storageKeys = {
           addActivity('Imported question bank from JSON.');
           renderQuestions();
           renderDashboard();
-      renderOmrHistory();
         } catch {
           toast('Invalid JSON file.');
         }
@@ -296,7 +292,6 @@ const storageKeys = {
       addActivity(`Generated ${setCount} exam set(s).`);
       renderExamPreview(exams);
       renderDashboard();
-      renderOmrHistory();
     }
 
     async function exportPdf() {
@@ -440,7 +435,6 @@ const storageKeys = {
       renderResults();
       renderDashboard();
       renderOmrHistory();
-      renderOmrHistory();
       studentExamState = null;
     }
 
@@ -493,6 +487,19 @@ const storageKeys = {
         });
       } catch (_e) {
         // local mode fallback: ignore network error
+      }
+    }
+
+    async function syncOmrSubmissionsFromDatabase() {
+      try {
+        const res = await fetch('/api/omr-submissions');
+        if (!res.ok) return;
+        const rows = await res.json();
+        if (!Array.isArray(rows)) return;
+        setData(storageKeys.omrSubmissions, rows.slice(0, 200));
+        renderOmrHistory();
+      } catch (_e) {
+        // local mode fallback
       }
     }
 
@@ -554,8 +561,6 @@ const storageKeys = {
       renderQuestions();
       renderResults();
       renderDashboard();
-      renderOmrHistory();
-      renderOmrHistory();
       byId('examPreview').innerHTML = '';
       resetStudentMode();
       clearQuestionForm();
@@ -617,7 +622,7 @@ const storageKeys = {
       renderResults();
       renderDashboard();
       renderOmrHistory();
-      renderOmrHistory();
+      syncOmrSubmissionsFromDatabase();
 
       const exams = getData(storageKeys.exams);
       if (exams.length) renderExamPreview(exams);
