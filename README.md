@@ -27,6 +27,10 @@ MegaPrep Pro Max is a premium, beginner-friendly exam and coaching management we
   - Timer + random MCQ exam
   - Auto submit on timer end
   - Auto score and result history
+- OMR System + OMR Checking:
+  - Text-based OMR sheet generator by set
+  - Auto OMR checker against generated set answer key
+  - OMR submission database (LocalStorage + backend API)
 - Professional extras:
   - Reset confirmation modal
   - Loading overlay
@@ -92,9 +96,11 @@ npm start
 
 Open `http://localhost:4000`.
 
-Health check endpoint:
+Health check endpoints:
 
 - `GET /api/health`
+- `GET /api/omr-submissions`
+- `POST /api/omr-submissions`
 
 ---
 

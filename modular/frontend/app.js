@@ -2,7 +2,8 @@ const storageKeys = {
       questions: 'megaprep_questions',
       exams: 'megaprep_exams',
       results: 'megaprep_results',
-      activity: 'megaprep_activity'
+      activity: 'megaprep_activity',
+      omrSubmissions: 'megaprep_omr_submissions'
     };
 
     let questionEditId = null;
@@ -21,6 +22,7 @@ const storageKeys = {
       activity.unshift({ text, time: new Date().toLocaleString() });
       setData(storageKeys.activity, activity.slice(0, 12));
       renderDashboard();
+      renderOmrHistory();
     }
 
     function navTo(targetId, btn) {
@@ -95,8 +97,12 @@ const storageKeys = {
 
       setData(storageKeys.questions, questions);
       clearQuestionForm();
+      byId('omrSheetPreview').innerHTML = "";
+      byId('omrCheckResult').textContent = "";
+      renderOmrHistory();
       renderQuestions();
       renderDashboard();
+      renderOmrHistory();
     }
 
     function clearQuestionForm() {
@@ -157,6 +163,7 @@ const storageKeys = {
       addActivity('Deleted a question.');
       renderQuestions();
       renderDashboard();
+      renderOmrHistory();
     };
 
     function exportJson() {
@@ -178,6 +185,7 @@ const storageKeys = {
           addActivity('Imported question bank from JSON.');
           renderQuestions();
           renderDashboard();
+      renderOmrHistory();
         } catch {
           toast('Invalid JSON file.');
         }
@@ -288,6 +296,7 @@ const storageKeys = {
       addActivity(`Generated ${setCount} exam set(s).`);
       renderExamPreview(exams);
       renderDashboard();
+      renderOmrHistory();
     }
 
     async function exportPdf() {
@@ -430,6 +439,8 @@ const storageKeys = {
 
       renderResults();
       renderDashboard();
+      renderOmrHistory();
+      renderOmrHistory();
       studentExamState = null;
     }
 
@@ -439,15 +450,118 @@ const storageKeys = {
       byId('studentScoreCard').classList.add('hidden');
     }
 
+    function getSetAnswerKey(setCode) {
+      const exams = getData(storageKeys.exams);
+      const selectedSet = exams.find(set => set.setCode === setCode);
+      if (!selectedSet) return null;
+      return selectedSet.questions.map((q) => q.type === 'mcq' ? q.correctMapped : '-');
+    }
+
+    function generateOmrSheet() {
+      const setCode = byId('omrSetCode').value;
+      const examTitle = byId('omrExamTitle').value.trim() || 'OMR Exam';
+      const student = byId('omrStudentName').value.trim() || '________________';
+      const roll = byId('omrRoll').value.trim() || '________________';
+      const key = getSetAnswerKey(setCode);
+      if (!key) return toast('Generate exam sets first. Then create OMR for a valid set.');
+      const count = Math.min(Number(byId('omrQuestionCount').value || key.length), key.length);
+
+      const rows = Array.from({ length: count }, (_, i) => `<tr><td>${i + 1}</td><td>(A)</td><td>(B)</td><td>(C)</td><td>(D)</td></tr>`).join('');
+      byId('omrSheetPreview').innerHTML = `
+        <h3 style="text-align:center; margin:0;">${examTitle}</h3>
+        <p style="text-align:center; margin:6px 0 10px;">OMR Answer Sheet • Set ${setCode}</p>
+        <p><b>Name:</b> ${student}</p>
+        <p><b>Roll:</b> ${roll}</p>
+        <table class="board-meta">
+          <tr><td><b>Set</b></td><td>${setCode}</td><td><b>Total Questions</b></td><td>${count}</td></tr>
+        </table>
+        <div class="board-instruction">Fill one option per question using dark pen mark.</div>
+        <table class="board-meta">
+          <thead><tr><td><b>Q No.</b></td><td><b>A</b></td><td><b>B</b></td><td><b>C</b></td><td><b>D</b></td></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+      addActivity(`Generated OMR sheet for Set ${setCode}.`);
+    }
+
+    async function saveOmrSubmissionToDatabase(record) {
+      try {
+        await fetch('/api/omr-submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(record)
+        });
+      } catch (_e) {
+        // local mode fallback: ignore network error
+      }
+    }
+
+    function renderOmrHistory() {
+      const rows = getData(storageKeys.omrSubmissions);
+      byId('omrHistoryBody').innerHTML = rows.map(r => `<tr><td>${r.roll}</td><td>${r.setCode}</td><td>${r.score}</td><td>${r.total}</td><td>${r.time}</td></tr>`).join('') || '<tr><td colspan="5">No OMR submissions yet.</td></tr>';
+    }
+
+    async function checkOmr() {
+      const roll = byId('checkRoll').value.trim();
+      const setCode = byId('checkSetCode').value;
+      const key = getSetAnswerKey(setCode);
+      if (!roll) return toast('Roll number is required for OMR checking.');
+      if (!key) return toast('No answer key found for this set. Generate exam sets first.');
+
+      const answers = byId('checkAnswersText').value
+        .toUpperCase()
+        .split(/[^A-D]+/)
+        .filter(Boolean);
+
+      if (!answers.length) return toast('Enter student answers before checking OMR.');
+
+      const total = Math.min(key.length, answers.length);
+      let score = 0;
+      for (let i = 0; i < total; i++) {
+        if (answers[i] === key[i]) score++;
+      }
+
+      const record = {
+        roll,
+        setCode,
+        score,
+        total,
+        answers: answers.slice(0, total),
+        time: new Date().toLocaleString()
+      };
+
+      const local = getData(storageKeys.omrSubmissions);
+      local.unshift(record);
+      setData(storageKeys.omrSubmissions, local.slice(0, 200));
+      await saveOmrSubmissionToDatabase(record);
+      renderOmrHistory();
+
+      byId('omrCheckResult').innerHTML = `<b>Result:</b> ${score}/${total} (${((score / total) * 100).toFixed(2)}%)`;
+      addActivity(`OMR checked for roll ${roll} (Set ${setCode}) => ${score}/${total}.`);
+    }
+
+    function printOmrSheet() {
+      if (!byId('omrSheetPreview').innerText.trim()) return toast('Generate OMR sheet first.');
+      const original = byId('examPreview').innerHTML;
+      byId('examPreview').innerHTML = byId('omrSheetPreview').outerHTML;
+      window.print();
+      byId('examPreview').innerHTML = original;
+    }
+
     function resetSystem() {
       Object.values(storageKeys).forEach(key => localStorage.removeItem(key));
       addActivity('System reset executed.');
       renderQuestions();
       renderResults();
       renderDashboard();
+      renderOmrHistory();
+      renderOmrHistory();
       byId('examPreview').innerHTML = '';
       resetStudentMode();
       clearQuestionForm();
+      byId('omrSheetPreview').innerHTML = "";
+      byId('omrCheckResult').textContent = "";
+      renderOmrHistory();
     }
 
     function bindEvents() {
@@ -469,6 +583,10 @@ const storageKeys = {
 
       byId('startExamBtn').addEventListener('click', beginStudentExam);
       byId('submitExamBtn').addEventListener('click', () => submitStudentExam(false));
+
+      byId('generateOmrSheetBtn').addEventListener('click', generateOmrSheet);
+      byId('printOmrSheetBtn').addEventListener('click', printOmrSheet);
+      byId('checkOmrBtn').addEventListener('click', checkOmr);
 
       byId('openResetModal').addEventListener('click', () => byId('resetModal').classList.add('active'));
       byId('cancelResetBtn').addEventListener('click', () => byId('resetModal').classList.remove('active'));
@@ -498,6 +616,8 @@ const storageKeys = {
       renderQuestions();
       renderResults();
       renderDashboard();
+      renderOmrHistory();
+      renderOmrHistory();
 
       const exams = getData(storageKeys.exams);
       if (exams.length) renderExamPreview(exams);
