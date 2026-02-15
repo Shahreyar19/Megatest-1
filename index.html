@@ -167,17 +167,38 @@
     }
 
     .preview-paper {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 12px;
+      background: #fff;
+      border: 1px solid #222;
+      border-radius: 8px;
       padding: 20px;
       margin-bottom: 16px;
       page-break-inside: avoid;
+      box-shadow: none;
+      color: #111;
     }
 
-    .question-block { margin-bottom: 10px; }
-    .option-list { list-style: upper-alpha; padding-left: 20px; margin-top: 6px; }
-    .image-preview { max-width: 150px; border-radius: 8px; margin-top: 6px; }
+    .board-paper-header { text-align: center; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 12px; }
+    .board-paper-header h2 { margin: 0; font-size: 1.25rem; letter-spacing: .02em; text-transform: uppercase; }
+    .board-paper-header h3 { margin: 6px 0 4px; font-size: 1rem; }
+    .board-meta {
+      width: 100%;
+      border: 1px solid #222;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+      font-size: .9rem;
+    }
+    .board-meta td { border: 1px solid #222; padding: 6px 8px; }
+    .board-instruction { font-size: .85rem; border: 1px dashed #666; padding: 8px; margin-bottom: 12px; }
+    .question-block { margin-bottom: 12px; line-height: 1.45; }
+    .question-line { display: flex; gap: 8px; align-items: baseline; }
+    .question-no { min-width: 28px; font-weight: 700; }
+    .option-list { list-style: none; padding-left: 34px; margin-top: 6px; }
+    .option-list li { margin-bottom: 4px; }
+    .option-label { display: inline-block; width: 24px; font-weight: 700; }
+    .image-preview { max-width: 170px; border: 1px solid #666; border-radius: 4px; margin: 6px 0 0 34px; }
+    .answer-sheet { border-top: 2px solid #111; margin-top: 12px; padding-top: 8px; }
+    .answer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .answer-item { border: 1px solid #222; padding: 6px; font-size: .9rem; }
     .hidden { display: none !important; }
 
     .loading {
@@ -612,32 +633,60 @@
 
     function renderExamPreview(exams) {
       const preview = byId('examPreview');
-      preview.innerHTML = exams.map((set, setIdx) => {
+      const setPages = exams.map((set) => {
         const qHtml = set.questions.map((q, idx) => {
           const options = q.type === 'mcq'
-            ? `<ol class="option-list">${Object.entries(q.shuffledOptions).map(([k,v]) => `<li><b>${k}.</b> ${v}</li>`).join('')}</ol>`
-            : '<p class="muted">Written answer question.</p>';
+            ? `<ol class="option-list">${Object.entries(q.shuffledOptions).map(([k,v]) => `<li><span class="option-label">(${k})</span> ${v}</li>`).join('')}</ol>`
+            : `<p style="padding-left:34px; margin:6px 0 0;"><i>Write your answer in the answer script. (${q.marks || 1} marks)</i></p>`;
           return `<div class="question-block">
-            <p><b>${idx + 1}.</b> ${q.text} <span class="muted">[${q.marks || 1}]</span></p>
+            <div class="question-line"><span class="question-no">${idx + 1}.</span><span>${q.text}</span></div>
             ${q.image ? `<img class="image-preview" src="${q.image}" alt="question image">` : ''}
             ${options}
           </div>`;
         }).join('');
 
-        const answerKey = set.questions
-          .map((q, idx) => `${idx + 1}. ${q.type === 'mcq' ? q.correctMapped : '-'}`)
-          .join(' | ');
-
         return `<article class="preview-paper">
-          <h2 style="margin:0; text-align:center;">${set.meta.institute}</h2>
-          <p style="text-align:center; margin:6px 0;"><b>${set.meta.examName}</b> • ${set.meta.subject}</p>
-          <p style="text-align:center; margin:0 0 10px;">Date: ${set.meta.date || '-'} | Time: ${set.meta.time} | Full Marks: ${set.meta.fullMarks}</p>
-          <p><b>Set Code:</b> ${set.setCode}</p>
+          <header class="board-paper-header">
+            <h2>${set.meta.institute}</h2>
+            <h3>${set.meta.examName}</h3>
+            <p style="margin:0; font-size:.95rem;">Subject: <b>${set.meta.subject}</b></p>
+          </header>
+
+          <table class="board-meta">
+            <tr>
+              <td><b>Date:</b> ${set.meta.date || '-'}</td>
+              <td><b>Time:</b> ${set.meta.time}</td>
+              <td><b>Full Marks:</b> ${set.meta.fullMarks}</td>
+              <td><b>Set:</b> ${set.setCode}</td>
+            </tr>
+          </table>
+
+          <div class="board-instruction">
+            <b>Instructions:</b> (i) Answer all questions. (ii) For MCQ, choose the most appropriate option. (iii) Figures to the right indicate full marks.
+          </div>
+
           ${qHtml}
-          <hr>
-          <p><b>Answer Key (${set.setCode}):</b> ${answerKey}</p>
-        </article>${setIdx < exams.length - 1 ? '<div style="page-break-after: always;"></div>' : ''}`;
-      }).join('');
+        </article>`;
+      }).join('<div style="page-break-after: always;"></div>');
+
+      const answerKeyPage = `<article class="preview-paper">
+        <header class="board-paper-header">
+          <h2>Set-wise Answer Keys</h2>
+          <p style="margin:6px 0 0;">${exams[0]?.meta?.examName || ''} • ${exams[0]?.meta?.subject || ''}</p>
+        </header>
+        <div class="answer-sheet">
+          <div class="answer-grid">
+            ${exams.map((set) => {
+              const answerKey = set.questions
+                .map((q, idx) => `${idx + 1}. ${q.type === 'mcq' ? q.correctMapped : '-'}`)
+                .join(' | ');
+              return `<div class="answer-item"><b>Set ${set.setCode}</b><br>${answerKey}</div>`;
+            }).join('')}
+          </div>
+        </div>
+      </article>`;
+
+      preview.innerHTML = `${setPages}<div style="page-break-after: always;"></div>${answerKeyPage}`;
 
       if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
     }

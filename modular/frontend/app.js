@@ -206,32 +206,60 @@ const storageKeys = {
 
     function renderExamPreview(exams) {
       const preview = byId('examPreview');
-      preview.innerHTML = exams.map((set, setIdx) => {
+      const setPages = exams.map((set) => {
         const qHtml = set.questions.map((q, idx) => {
           const options = q.type === 'mcq'
-            ? `<ol class="option-list">${Object.entries(q.shuffledOptions).map(([k,v]) => `<li><b>${k}.</b> ${v}</li>`).join('')}</ol>`
-            : '<p class="muted">Written answer question.</p>';
+            ? `<ol class="option-list">${Object.entries(q.shuffledOptions).map(([k,v]) => `<li><span class="option-label">(${k})</span> ${v}</li>`).join('')}</ol>`
+            : `<p style="padding-left:34px; margin:6px 0 0;"><i>Write your answer in the answer script. (${q.marks || 1} marks)</i></p>`;
           return `<div class="question-block">
-            <p><b>${idx + 1}.</b> ${q.text} <span class="muted">[${q.marks || 1}]</span></p>
+            <div class="question-line"><span class="question-no">${idx + 1}.</span><span>${q.text}</span></div>
             ${q.image ? `<img class="image-preview" src="${q.image}" alt="question image">` : ''}
             ${options}
           </div>`;
         }).join('');
 
-        const answerKey = set.questions
-          .map((q, idx) => `${idx + 1}. ${q.type === 'mcq' ? q.correctMapped : '-'}`)
-          .join(' | ');
-
         return `<article class="preview-paper">
-          <h2 style="margin:0; text-align:center;">${set.meta.institute}</h2>
-          <p style="text-align:center; margin:6px 0;"><b>${set.meta.examName}</b> • ${set.meta.subject}</p>
-          <p style="text-align:center; margin:0 0 10px;">Date: ${set.meta.date || '-'} | Time: ${set.meta.time} | Full Marks: ${set.meta.fullMarks}</p>
-          <p><b>Set Code:</b> ${set.setCode}</p>
+          <header class="board-paper-header">
+            <h2>${set.meta.institute}</h2>
+            <h3>${set.meta.examName}</h3>
+            <p style="margin:0; font-size:.95rem;">Subject: <b>${set.meta.subject}</b></p>
+          </header>
+
+          <table class="board-meta">
+            <tr>
+              <td><b>Date:</b> ${set.meta.date || '-'}</td>
+              <td><b>Time:</b> ${set.meta.time}</td>
+              <td><b>Full Marks:</b> ${set.meta.fullMarks}</td>
+              <td><b>Set:</b> ${set.setCode}</td>
+            </tr>
+          </table>
+
+          <div class="board-instruction">
+            <b>Instructions:</b> (i) Answer all questions. (ii) For MCQ, choose the most appropriate option. (iii) Figures to the right indicate full marks.
+          </div>
+
           ${qHtml}
-          <hr>
-          <p><b>Answer Key (${set.setCode}):</b> ${answerKey}</p>
-        </article>${setIdx < exams.length - 1 ? '<div style="page-break-after: always;"></div>' : ''}`;
-      }).join('');
+        </article>`;
+      }).join('<div style="page-break-after: always;"></div>');
+
+      const answerKeyPage = `<article class="preview-paper">
+        <header class="board-paper-header">
+          <h2>Set-wise Answer Keys</h2>
+          <p style="margin:6px 0 0;">${exams[0]?.meta?.examName || ''} • ${exams[0]?.meta?.subject || ''}</p>
+        </header>
+        <div class="answer-sheet">
+          <div class="answer-grid">
+            ${exams.map((set) => {
+              const answerKey = set.questions
+                .map((q, idx) => `${idx + 1}. ${q.type === 'mcq' ? q.correctMapped : '-'}`)
+                .join(' | ');
+              return `<div class="answer-item"><b>Set ${set.setCode}</b><br>${answerKey}</div>`;
+            }).join('')}
+          </div>
+        </div>
+      </article>`;
+
+      preview.innerHTML = `${setPages}<div style="page-break-after: always;"></div>${answerKeyPage}`;
 
       if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
     }
