@@ -240,7 +240,7 @@ const storageKeys = {
 
           ${qHtml}
         </article>`;
-      }).join('<div style="page-break-after: always;"></div>');
+      }).join('<div class="pdf-page-break"></div>');
 
       const answerKeyPage = `<article class="preview-paper">
         <header class="board-paper-header">
@@ -251,15 +251,15 @@ const storageKeys = {
           <div class="answer-grid">
             ${exams.map((set) => {
               const answerKey = set.questions
-                .map((q, idx) => `${idx + 1}. ${q.type === 'mcq' ? q.correctMapped : '-'}`)
-                .join(' | ');
-              return `<div class="answer-item"><b>Set ${set.setCode}</b><br>${answerKey}</div>`;
+                .map((q, idx) => `<span>${idx + 1}. ${q.type === 'mcq' ? q.correctMapped : '-'}</span>`)
+                .join(' ');
+              return `<div class="answer-item"><b>Set ${set.setCode}</b><br><div style="display:flex;flex-wrap:wrap;gap:8px 12px;">${answerKey}</div></div>`;
             }).join('')}
           </div>
         </div>
       </article>`;
 
-      preview.innerHTML = `${setPages}<div style="page-break-after: always;"></div>${answerKeyPage}`;
+      preview.innerHTML = `${setPages}<div class="pdf-page-break"></div>${answerKeyPage}`;
 
       if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
     }
