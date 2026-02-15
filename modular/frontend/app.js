@@ -242,7 +242,7 @@ const storageKeys = {
         </article>`;
       }).join('<div class="pdf-page-break"></div>');
 
-      const answerKeyPage = `<article class="preview-paper">
+      const answerKeyPage = exams.length ? `<article class="preview-paper">
         <header class="board-paper-header">
           <h2>Set-wise Answer Keys</h2>
           <p style="margin:6px 0 0;">${exams[0]?.meta?.examName || ''} • ${exams[0]?.meta?.subject || ''}</p>
@@ -257,9 +257,9 @@ const storageKeys = {
             }).join('')}
           </div>
         </div>
-      </article>`;
+      </article>` : "";
 
-      preview.innerHTML = `${setPages}<div class="pdf-page-break"></div>${answerKeyPage}`;
+      preview.innerHTML = answerKeyPage ? `${setPages}<div class="pdf-page-break"></div>${answerKeyPage}` : setPages;
 
       if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
     }

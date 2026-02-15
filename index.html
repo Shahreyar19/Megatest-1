@@ -216,16 +216,17 @@
       body { background: #fff !important; }
       .preview-paper {
         width: 100%;
-        min-height: 277mm;
         margin: 0;
         border: 1px solid #111;
         border-radius: 0;
         padding: 10mm 8mm;
         box-sizing: border-box;
         break-inside: auto;
+        page-break-inside: auto;
       }
       .answer-grid { grid-template-columns: 1fr; }
       .card { box-shadow: none !important; }
+      .pdf-page-break { height: 0; margin: 0; border: 0; }
     }
     .hidden { display: none !important; }
 
@@ -697,7 +698,7 @@
         </article>`;
       }).join('<div class="pdf-page-break"></div>');
 
-      const answerKeyPage = `<article class="preview-paper">
+      const answerKeyPage = exams.length ? `<article class="preview-paper">
         <header class="board-paper-header">
           <h2>Set-wise Answer Keys</h2>
           <p style="margin:6px 0 0;">${exams[0]?.meta?.examName || ''} • ${exams[0]?.meta?.subject || ''}</p>
@@ -712,9 +713,9 @@
             }).join('')}
           </div>
         </div>
-      </article>`;
+      </article>` : "";
 
-      preview.innerHTML = `${setPages}<div class="pdf-page-break"></div>${answerKeyPage}`;
+      preview.innerHTML = answerKeyPage ? `${setPages}<div class="pdf-page-break"></div>${answerKeyPage}` : setPages;
 
       if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
     }
