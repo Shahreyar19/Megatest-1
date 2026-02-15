@@ -313,6 +313,18 @@ const storageKeys = {
       }
     }
 
+    async function printA4Optimized() {
+      const exams = getData(storageKeys.exams);
+      if (!exams.length) return toast('Generate an exam first.');
+      try {
+        if (window.MathJax?.typesetPromise) await MathJax.typesetPromise();
+        window.print();
+      } catch (err) {
+        console.error(err);
+        toast('Print failed. Please try again.');
+      }
+    }
+
     function renderResults() {
       const results = getData(storageKeys.results);
       byId('resultTableBody').innerHTML = results.map(r => `<tr><td>${r.name}</td><td>${r.score}</td><td>${r.total}</td><td>${r.time}</td></tr>`).join('')
@@ -453,6 +465,7 @@ const storageKeys = {
 
       byId('generateExamBtn').addEventListener('click', generateExam);
       byId('exportPdfBtn').addEventListener('click', exportPdf);
+      byId('printA4Btn').addEventListener('click', printA4Optimized);
 
       byId('startExamBtn').addEventListener('click', beginStudentExam);
       byId('submitExamBtn').addEventListener('click', () => submitStudentExam(false));

@@ -227,6 +227,21 @@
       .answer-grid { grid-template-columns: 1fr; }
       .card { box-shadow: none !important; }
       .pdf-page-break { height: 0; margin: 0; border: 0; }
+      body * { visibility: hidden !important; }
+      #examPreview, #examPreview * { visibility: visible !important; }
+      #examPreview {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 190mm !important;
+        max-width: 190mm !important;
+        margin: 0 auto !important;
+        background: #fff;
+      }
+      .preview-paper {
+        background: #fff !important;
+        color: #000 !important;
+      }
     }
     .hidden { display: none !important; }
 
@@ -394,6 +409,7 @@
           <div class="actions-row" style="margin-top:12px;">
             <button class="btn-primary" id="generateExamBtn">Generate Exam Sets</button>
             <button class="btn-success" id="exportPdfBtn">Export PDF</button>
+            <button class="btn-warning" id="printA4Btn">Print A4 (Auto Optimize)</button>
           </div>
         </div>
 
@@ -769,6 +785,18 @@
       }
     }
 
+    async function printA4Optimized() {
+      const exams = getData(storageKeys.exams);
+      if (!exams.length) return toast('Generate an exam first.');
+      try {
+        if (window.MathJax?.typesetPromise) await MathJax.typesetPromise();
+        window.print();
+      } catch (err) {
+        console.error(err);
+        toast('Print failed. Please try again.');
+      }
+    }
+
     function renderResults() {
       const results = getData(storageKeys.results);
       byId('resultTableBody').innerHTML = results.map(r => `<tr><td>${r.name}</td><td>${r.score}</td><td>${r.total}</td><td>${r.time}</td></tr>`).join('')
@@ -909,6 +937,7 @@
 
       byId('generateExamBtn').addEventListener('click', generateExam);
       byId('exportPdfBtn').addEventListener('click', exportPdf);
+      byId('printA4Btn').addEventListener('click', printA4Optimized);
 
       byId('startExamBtn').addEventListener('click', beginStudentExam);
       byId('submitExamBtn').addEventListener('click', () => submitStudentExam(false));
