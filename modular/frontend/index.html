@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MegaPrep Pro Max – AI Exam & Coaching Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="login-page" id="loginPage">
+    <div class="login-card">
+      <span class="chip">Premium Coaching Suite</span>
+      <h2>MegaPrep Pro Max</h2>
+      <p class="muted">Demo login: <b>admin</b> / <b>admin123</b></p>
+      <div class="form-grid">
+        <div>
+          <label>Username</label>
+          <input id="loginUser" placeholder="Enter username" />
+        </div>
+        <div>
+          <label>Password</label>
+          <input id="loginPass" type="password" placeholder="Enter password" />
+        </div>
+      </div>
+      <p id="loginError" class="muted hidden" style="color:#d10041;">Invalid credentials.</p>
+      <button class="btn-primary" style="width:100%; margin-top:12px;" id="loginBtn">Login</button>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>📘 MegaPrep Pro Max</h1>
+        <p>AI Exam & Coaching Management System</p>
+      </div>
+      <button class="nav-btn active" data-target="dashboardSection">Dashboard</button>
+      <button class="nav-btn" data-target="questionSection">Question Bank</button>
+      <button class="nav-btn" data-target="examSection">Exam Generator</button>
+      <button class="nav-btn" data-target="resultSection">Student Results</button>
+      <button class="nav-btn" data-target="studentSection">Student Exam Mode</button>
+      <button class="nav-btn" data-target="omrSection">OMR System</button>
+      <button class="nav-btn btn-danger" id="openResetModal" style="margin-top:12px;">Reset System</button>
+    </aside>
+
+    <main class="content">
+      <div class="content-header">
+        <div class="title">
+          <h2 id="sectionTitle">Dashboard</h2>
+          <p>Manage questions, generate exams, export PDF, and track performance.</p>
+        </div>
+        <button id="logoutBtn">Logout</button>
+      </div>
+
+      <section class="section active" id="dashboardSection">
+        <div class="actions-row">
+          <div class="card"><p class="muted">Total Questions</p><p id="kpiQuestions" class="kpi">0</p></div>
+          <div class="card"><p class="muted">Total Exams Generated</p><p id="kpiExams" class="kpi">0</p></div>
+          <div class="card"><p class="muted">Student Attempts</p><p id="kpiAttempts" class="kpi">0</p></div>
+        </div>
+        <div class="two-col">
+          <div class="card"><canvas id="analyticsChart"></canvas></div>
+          <div class="card">
+            <h3>Recent Activity</h3>
+            <ul id="activityList"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="questionSection">
+        <div class="card">
+          <h3>Question Bank Manager</h3>
+          <div class="form-grid">
+            <div>
+              <label>Type</label>
+              <select id="qType"><option value="mcq">MCQ</option><option value="written">Written</option></select>
+            </div>
+            <div>
+              <label>Marks</label>
+              <input id="qMarks" type="number" min="1" value="1" />
+            </div>
+            <div>
+              <label>Question Text (MathJax supported)</label>
+              <textarea id="qText" placeholder="e.g., Solve: \(x^2+2x+1=0\)"></textarea>
+            </div>
+            <div>
+              <label>Question Image</label>
+              <input id="qImage" type="file" accept="image/*" />
+            </div>
+          </div>
+          <div id="mcqFields" class="form-grid" style="margin-top:10px;">
+            <div><label>Option A</label><input id="optA" /></div>
+            <div><label>Option B</label><input id="optB" /></div>
+            <div><label>Option C</label><input id="optC" /></div>
+            <div><label>Option D</label><input id="optD" /></div>
+            <div>
+              <label>Correct Answer</label>
+              <select id="correctAns"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+            </div>
+          </div>
+          <div class="actions-row" style="margin-top:12px;">
+            <button class="btn-primary" id="saveQuestionBtn">Add Question</button>
+            <button id="clearQuestionBtn">Clear Form</button>
+            <button id="exportJsonBtn">Export JSON</button>
+            <label class="btn-success" style="display:flex;align-items:center;justify-content:center;">
+              Import JSON<input id="importJsonInput" type="file" accept="application/json" class="hidden" />
+            </label>
+          </div>
+          <p class="muted">Question Counter: <b id="questionCounter">0</b></p>
+        </div>
+
+        <div class="card">
+          <div class="actions-row">
+            <input id="searchQuestion" placeholder="Search question text" />
+            <select id="filterType"><option value="all">All Types</option><option value="mcq">MCQ</option><option value="written">Written</option></select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Type</th><th>Question</th><th>Details</th><th>Actions</th></tr></thead>
+              <tbody id="questionTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="examSection">
+        <div class="card">
+          <h3>Exam Paper Generator</h3>
+          <div class="form-grid">
+            <div><label>Institute Name</label><input id="examInstitute" value="MegaPrep Coaching Center" /></div>
+            <div><label>Exam Name</label><input id="examName" value="Model Test" /></div>
+            <div><label>Subject</label><input id="examSubject" value="General Science" /></div>
+            <div><label>Date</label><input id="examDate" type="date" /></div>
+            <div><label>Time</label><input id="examTime" value="60 Minutes" /></div>
+            <div><label>Full Marks</label><input id="examMarks" value="100" /></div>
+            <div><label>Number of Sets (1-4)</label><input id="setCount" type="number" min="1" max="4" value="1" /></div>
+            <div><label>Questions per Set</label><input id="questionsPerSet" type="number" min="1" value="10" /></div>
+          </div>
+          <div class="actions-row" style="margin-top:12px;">
+            <button class="btn-primary" id="generateExamBtn">Generate Exam Sets</button>
+            <button class="btn-success" id="exportPdfBtn">Export PDF</button>
+            <button class="btn-warning" id="printA4Btn">Print A4 (Auto Optimize)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>PDF Preview Area</h3>
+          <div id="examPreview"></div>
+        </div>
+      </section>
+
+      <section class="section" id="resultSection">
+        <div class="card">
+          <h3>Student Result Section</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Student</th><th>Score</th><th>Total</th><th>Submitted At</th></tr></thead>
+              <tbody id="resultTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="studentSection">
+        <div class="card" id="studentSetup">
+          <h3>Student Exam Mode</h3>
+          <div class="form-grid">
+            <div><label>Student Name</label><input id="studentName" placeholder="Enter student name" /></div>
+            <div><label>Question Count</label><input id="studentQCount" type="number" min="1" value="5" /></div>
+            <div><label>Duration (minutes)</label><input id="studentDuration" type="number" min="1" value="10" /></div>
+          </div>
+          <button class="btn-primary" id="startExamBtn" style="margin-top:12px;">Start Exam</button>
+        </div>
+
+        <div class="card hidden" id="studentExamCard">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3>Live Exam</h3>
+            <span class="chip" id="examTimer">00:00</span>
+          </div>
+          <div id="studentQuestions"></div>
+          <button class="btn-success" id="submitExamBtn">Submit Exam</button>
+        </div>
+
+        <div class="card hidden" id="studentScoreCard"></div>
+      </section>
+
+      <section class="section" id="omrSection">
+        <div class="card">
+          <h3>OMR Sheet Generator (Text Format)</h3>
+          <div class="form-grid">
+            <div><label>Exam Title</label><input id="omrExamTitle" value="Model Test OMR" /></div>
+            <div><label>Set Code</label><select id="omrSetCode"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+            <div><label>Student Name</label><input id="omrStudentName" placeholder="Student name" /></div>
+            <div><label>Roll Number</label><input id="omrRoll" placeholder="Roll number" /></div>
+            <div><label>Total Questions</label><input id="omrQuestionCount" type="number" min="1" value="20" /></div>
+          </div>
+          <div class="actions-row" style="margin-top:12px;">
+            <button class="btn-primary" id="generateOmrSheetBtn">Generate OMR Sheet</button>
+            <button class="btn-warning" id="printOmrSheetBtn">Print OMR Sheet</button>
+          </div>
+          <div id="omrSheetPreview" class="preview-paper" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="card">
+          <h3>OMR Checking System</h3>
+          <p class="muted">Provide answers as letters separated by comma/space/newline (example: <b>A B C D A</b>).</p>
+          <div class="form-grid">
+            <div><label>Roll Number</label><input id="checkRoll" placeholder="Roll number" /></div>
+            <div><label>Set Code</label><select id="checkSetCode"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+            <div style="grid-column:1/-1;"><label>Student Answers</label><textarea id="checkAnswersText" placeholder="A B C D A ..."></textarea></div>
+          </div>
+          <div class="actions-row" style="margin-top:12px;">
+            <button class="btn-success" id="checkOmrBtn">Check OMR</button>
+          </div>
+          <div id="omrCheckResult" class="muted" style="margin-top:8px;"></div>
+
+          <h4 style="margin-top:14px;">OMR Submission Database (Local + API)</h4>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Roll</th><th>Set</th><th>Score</th><th>Total</th><th>Submitted At</th></tr></thead>
+              <tbody id="omrHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="loading" id="loadingOverlay"><div class="spinner"></div></div>
+
+  <div class="modal" id="resetModal">
+    <div class="modal-card">
+      <h3>Reset Confirmation</h3>
+      <p class="muted">This will remove all saved questions, exams, results, and activity history.</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="cancelResetBtn">Cancel</button>
+        <button class="btn-danger" id="confirmResetBtn">Yes, Reset</button>
+      </div>
+    </div>
+  </div>
+
+    <script src="./app.js"></script>
+</body>
+</html>

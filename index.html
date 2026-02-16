@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MegaPrep Pro Max – AI Exam & Coaching Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --sidebar: #0d1321;
+      --bg: #f4f7ff;
+      --surface: #ffffff;
+      --text: #14213d;
+      --muted: #5f6d89;
+      --accent: #5b6cff;
+      --accent-2: #20c997;
+      --danger: #ff5e78;
+      --warning: #ffb020;
+      --border: #e5eaf4;
+      --shadow: 0 18px 40px rgba(13, 19, 33, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(140deg, #eef3ff 0%, #f7f9ff 50%, #edf6ff 100%);
+      color: var(--text);
+    }
+
+    .app { display: none; min-height: 100vh; }
+    .app.active { display: grid; grid-template-columns: 280px 1fr; }
+
+    .sidebar {
+      background: linear-gradient(180deg, #111a2d 0%, #0b1220 100%);
+      color: #dbe8ff;
+      padding: 22px 16px;
+      position: sticky;
+      top: 0;
+      min-height: 100vh;
+      box-shadow: 8px 0 24px rgba(0,0,0,0.2);
+    }
+
+    .brand {
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(8px);
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1.15rem; }
+    .brand p { margin: 6px 0 0; color: #9fb1d6; font-size: .85rem; }
+
+    .nav-btn {
+      display: flex;
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #dbe8ff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin: 6px 0;
+      cursor: pointer;
+      transition: all .25s ease;
+      font-weight: 600;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      border-color: rgba(255,255,255,.22);
+      background: rgba(255,255,255,.1);
+      transform: translateX(3px);
+    }
+
+    .content { padding: 24px; }
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .title h2 { margin: 0; font-size: 1.5rem; }
+    .title p { margin: 4px 0 0; color: var(--muted); }
+
+    .actions-row, .form-grid, .two-col { display: grid; gap: 12px; }
+    .actions-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 12px; }
+    .form-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .two-col { grid-template-columns: 1fr 1fr; }
+
+    .card {
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .kpi { font-size: 1.8rem; font-weight: 800; margin: 0; }
+    .muted { color: var(--muted); }
+
+    label { font-size: .85rem; color: var(--muted); font-weight: 600; }
+    input, select, textarea, button {
+      font-family: inherit;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+    }
+    textarea { min-height: 92px; resize: vertical; }
+
+    button {
+      cursor: pointer;
+      background: #fff;
+      transition: all .2s ease;
+      font-weight: 600;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #7d8bff); color: white; border-color: transparent; }
+    .btn-success { background: linear-gradient(135deg, var(--accent-2), #3fddb0); color: white; border-color: transparent; }
+    .btn-danger { background: linear-gradient(135deg, var(--danger), #ff7f95); color: white; border-color: transparent; }
+    .btn-warning { background: linear-gradient(135deg, var(--warning), #ffc355); color: #4f3500; border-color: transparent; }
+    button:hover { transform: translateY(-1px); opacity: .95; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; border-bottom: 1px solid var(--border); padding: 10px 8px; font-size: .9rem; vertical-align: top; }
+    th { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .login-page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: radial-gradient(circle at 20% 20%, #7587ff 0%, #eef3ff 40%, #e7f6ff 100%);
+    }
+
+    .login-card {
+      width: min(440px, 100%);
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .chip {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 700;
+      background: #eaf0ff;
+      color: #3f51ff;
+    }
+
+    .preview-paper {
+      background: #fff;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      page-break-inside: auto;
+      box-shadow: none;
+      color: #111;
+    }
+
+    .board-paper-header { text-align: center; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 12px; }
+    .board-paper-header h2 { margin: 0; font-size: 1.25rem; letter-spacing: .02em; text-transform: uppercase; }
+    .board-paper-header h3 { margin: 6px 0 4px; font-size: 1rem; }
+    .board-meta {
+      width: 100%;
+      border: 1px solid #222;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+      font-size: .9rem;
+    }
+    .board-meta td { border: 1px solid #222; padding: 6px 8px; }
+    .board-instruction { font-size: .85rem; border: 1px dashed #666; padding: 8px; margin-bottom: 12px; }
+    .question-block { margin-bottom: 12px; line-height: 1.45; break-inside: avoid; page-break-inside: avoid; }
+    .question-line { display: flex; gap: 8px; align-items: baseline; }
+    .question-no { min-width: 28px; font-weight: 700; }
+    .option-list { list-style: none; padding-left: 34px; margin-top: 6px; }
+    .option-list li { margin-bottom: 4px; }
+    .option-label { display: inline-block; width: 24px; font-weight: 700; }
+    .image-preview { max-width: 170px; border: 1px solid #666; border-radius: 4px; margin: 6px 0 0 34px; }
+    .answer-sheet { border-top: 2px solid #111; margin-top: 12px; padding-top: 8px; }
+    .answer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .answer-item { border: 1px solid #222; padding: 6px; font-size: .9rem; }
+    .pdf-page-break { break-after: page; page-break-after: always; }
+
+    #examPreview {
+      width: 100%;
+      max-width: 210mm;
+      margin: 0 auto;
+    }
+
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+
+    @media print {
+      body { background: #fff !important; }
+      .preview-paper {
+        width: 100%;
+        margin: 0;
+        border: 1px solid #111;
+        border-radius: 0;
+        padding: 10mm 8mm;
+        box-sizing: border-box;
+        break-inside: auto;
+        page-break-inside: auto;
+      }
+      .answer-grid { grid-template-columns: 1fr; }
+      .card { box-shadow: none !important; }
+      .pdf-page-break { height: 0; margin: 0; border: 0; }
+      body * { visibility: hidden !important; }
+      #examPreview, #examPreview * { visibility: visible !important; }
+      #examPreview {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 190mm !important;
+        max-width: 190mm !important;
+        margin: 0 auto !important;
+        background: #fff;
+      }
+      .preview-paper {
+        background: #fff !important;
+        color: #000 !important;
+      }
+    }
+    .hidden { display: none !important; }
+
+    .loading {
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(12,16,27,.5);
+      z-index: 99;
+    }
+    .loading.active { display: flex; }
+    .spinner {
+      width: 54px; height: 54px;
+      border: 4px solid #d9e1ff;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .9s linear infinite;
+      background: white;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .modal {
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.45);
+      z-index: 100;
+    }
+    .modal.active { display: flex; }
+    .modal-card { background: white; border-radius: 14px; max-width: 420px; padding: 20px; width: 95%; }
+
+    @media (max-width: 980px) {
+      .app.active { grid-template-columns: 1fr; }
+      .sidebar { min-height: auto; position: static; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page" id="loginPage">
+    <div class="login-card">
+      <span class="chip">Premium Coaching Suite</span>
+      <h2>MegaPrep Pro Max</h2>
+      <p class="muted">Demo login: <b>admin</b> / <b>admin123</b></p>
+      <div class="form-grid">
+        <div>
+          <label>Username</label>
+          <input id="loginUser" placeholder="Enter username" />
+        </div>
+        <div>
+          <label>Password</label>
+          <input id="loginPass" type="password" placeholder="Enter password" />
+        </div>
+      </div>
+      <p id="loginError" class="muted hidden" style="color:#d10041;">Invalid credentials.</p>
+      <button class="btn-primary" style="width:100%; margin-top:12px;" id="loginBtn">Login</button>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>📘 MegaPrep Pro Max</h1>
+        <p>AI Exam & Coaching Management System</p>
+      </div>
+      <button class="nav-btn active" data-target="dashboardSection">Dashboard</button>
+      <button class="nav-btn" data-target="questionSection">Question Bank</button>
+      <button class="nav-btn" data-target="examSection">Exam Generator</button>
+      <button class="nav-btn" data-target="resultSection">Student Results</button>
+      <button class="nav-btn" data-target="studentSection">Student Exam Mode</button>
+      <button class="nav-btn" data-target="omrSection">OMR System</button>
+      <button class="nav-btn btn-danger" id="openResetModal" style="margin-top:12px;">Reset System</button>
+    </aside>
+
+    <main class="content">
+      <div class="content-header">
+        <div class="title">
+          <h2 id="sectionTitle">Dashboard</h2>
+          <p>Manage questions, generate exams, export PDF, and track performance.</p>
+        </div>
+        <button id="logoutBtn">Logout</button>
+      </div>
+
+      <section class="section active" id="dashboardSection">
+        <div class="actions-row">
+          <div class="card"><p class="muted">Total Questions</p><p id="kpiQuestions" class="kpi">0</p></div>
+          <div class="card"><p class="muted">Total Exams Generated</p><p id="kpiExams" class="kpi">0</p></div>
+          <div class="card"><p class="muted">Student Attempts</p><p id="kpiAttempts" class="kpi">0</p></div>
+        </div>
+        <div class="two-col">
+          <div class="card"><canvas id="analyticsChart"></canvas></div>
+          <div class="card">
+            <h3>Recent Activity</h3>
+            <ul id="activityList"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="questionSection">
+        <div class="card">
+          <h3>Question Bank Manager</h3>
+          <div class="form-grid">
+            <div>
+              <label>Type</label>
+              <select id="qType"><option value="mcq">MCQ</option><option value="written">Written</option></select>
+            </div>
+            <div>
+              <label>Marks</label>
+              <input id="qMarks" type="number" min="1" value="1" />
+            </div>
+            <div>
+              <label>Question Text (MathJax supported)</label>
+              <textarea id="qText" placeholder="e.g., Solve: \(x^2+2x+1=0\)"></textarea>
+            </div>
+            <div>
+              <label>Question Image</label>
+              <input id="qImage" type="file" accept="image/*" />
+            </div>
+          </div>
+          <div id="mcqFields" class="form-grid" style="margin-top:10px;">
+            <div><label>Option A</label><input id="optA" /></div>
+            <div><label>Option B</label><input id="optB" /></div>
+            <div><label>Option C</label><input id="optC" /></div>
+            <div><label>Option D</label><input id="optD" /></div>
+            <div>
+              <label>Correct Answer</label>
+              <select id="correctAns"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+            </div>
+          </div>
+          <div class="actions-row" style="margin-top:12px;">
+            <button class="btn-primary" id="saveQuestionBtn">Add Question</button>
+            <button id="clearQuestionBtn">Clear Form</button>
+            <button id="exportJsonBtn">Export JSON</button>
+            <label class="btn-success" style="display:flex;align-items:center;justify-content:center;">
+              Import JSON<input id="importJsonInput" type="file" accept="application/json" class="hidden" />
+            </label>
+          </div>
+          <p class="muted">Question Counter: <b id="questionCounter">0</b></p>
+        </div>
+
+        <div class="card">
+          <div class="actions-row">
+            <input id="searchQuestion" placeholder="Search question text" />
+            <select id="filterType"><option value="all">All Types</option><option value="mcq">MCQ</option><option value="written">Written</option></select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Type</th><th>Question</th><th>Details</th><th>Actions</th></tr></thead>
+              <tbody id="questionTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="examSection">
+        <div class="card">
+          <h3>Exam Paper Generator</h3>
+          <div class="form-grid">
+            <div><label>Institute Name</label><input id="examInstitute" value="MegaPrep Coaching Center" /></div>
+            <div><label>Exam Name</label><input id="examName" value="Model Test" /></div>
+            <div><label>Subject</label><input id="examSubject" value="General Science" /></div>
+            <div><label>Date</label><input id="examDate" type="date" /></div>
+            <div><label>Time</label><input id="examTime" value="60 Minutes" /></div>
+            <div><label>Full Marks</label><input id="examMarks" value="100" /></div>
+            <div><label>Number of Sets (1-4)</label><input id="setCount" type="number" min="1" max="4" value="1" /></div>
+            <div><label>Questions per Set</label><input id="questionsPerSet" type="number" min="1" value="10" /></div>
+          </div>
+          <div class="actions-row" style="margin-top:12px;">
+            <button class="btn-primary" id="generateExamBtn">Generate Exam Sets</button>
+            <button class="btn-success" id="exportPdfBtn">Export PDF</button>
+            <button class="btn-warning" id="printA4Btn">Print A4 (Auto Optimize)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>PDF Preview Area</h3>
+          <div id="examPreview"></div>
+        </div>
+      </section>
+
+      <section class="section" id="resultSection">
+        <div class="card">
+          <h3>Student Result Section</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Student</th><th>Score</th><th>Total</th><th>Submitted At</th></tr></thead>
+              <tbody id="resultTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="studentSection">
+        <div class="card" id="studentSetup">
+          <h3>Student Exam Mode</h3>
+          <div class="form-grid">
+            <div><label>Student Name</label><input id="studentName" placeholder="Enter student name" /></div>
+            <div><label>Question Count</label><input id="studentQCount" type="number" min="1" value="5" /></div>
+            <div><label>Duration (minutes)</label><input id="studentDuration" type="number" min="1" value="10" /></div>
+          </div>
+          <button class="btn-primary" id="startExamBtn" style="margin-top:12px;">Start Exam</button>
+        </div>
+
+        <div class="card hidden" id="studentExamCard">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3>Live Exam</h3>
+            <span class="chip" id="examTimer">00:00</span>
+          </div>
+          <div id="studentQuestions"></div>
+          <button class="btn-success" id="submitExamBtn">Submit Exam</button>
+        </div>
+
+        <div class="card hidden" id="studentScoreCard"></div>
+      </section>
+
+      <section class="section" id="omrSection">
+        <div class="card">
+          <h3>OMR Sheet Generator (Text Format)</h3>
+          <div class="form-grid">
+            <div><label>Exam Title</label><input id="omrExamTitle" value="Model Test OMR" /></div>
+            <div><label>Set Code</label><select id="omrSetCode"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+            <div><label>Student Name</label><input id="omrStudentName" placeholder="Student name" /></div>
+            <div><label>Roll Number</label><input id="omrRoll" placeholder="Roll number" /></div>
+            <div><label>Total Questions</label><input id="omrQuestionCount" type="number" min="1" value="20" /></div>
+          </div>
+          <div class="actions-row" style="margin-top:12px;">
+            <button class="btn-primary" id="generateOmrSheetBtn">Generate OMR Sheet</button>
+            <button class="btn-warning" id="printOmrSheetBtn">Print OMR Sheet</button>
+          </div>
+          <div id="omrSheetPreview" class="preview-paper" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="card">
+          <h3>OMR Checking System</h3>
+          <p class="muted">Provide answers as letters separated by comma/space/newline (example: <b>A B C D A</b>).</p>
+          <div class="form-grid">
+            <div><label>Roll Number</label><input id="checkRoll" placeholder="Roll number" /></div>
+            <div><label>Set Code</label><select id="checkSetCode"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+            <div style="grid-column:1/-1;"><label>Student Answers</label><textarea id="checkAnswersText" placeholder="A B C D A ..."></textarea></div>
+          </div>
+          <div class="actions-row" style="margin-top:12px;">
+            <button class="btn-success" id="checkOmrBtn">Check OMR</button>
+          </div>
+          <div id="omrCheckResult" class="muted" style="margin-top:8px;"></div>
+
+          <h4 style="margin-top:14px;">OMR Submission Database (Local + API)</h4>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Roll</th><th>Set</th><th>Score</th><th>Total</th><th>Submitted At</th></tr></thead>
+              <tbody id="omrHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="loading" id="loadingOverlay"><div class="spinner"></div></div>
+
+  <div class="modal" id="resetModal">
+    <div class="modal-card">
+      <h3>Reset Confirmation</h3>
+      <p class="muted">This will remove all saved questions, exams, results, and activity history.</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="cancelResetBtn">Cancel</button>
+        <button class="btn-danger" id="confirmResetBtn">Yes, Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const storageKeys = {
+      questions: 'megaprep_questions',
+      exams: 'megaprep_exams',
+      results: 'megaprep_results',
+      activity: 'megaprep_activity',
+      omrSubmissions: 'megaprep_omr_submissions'
+    };
+
+    let questionEditId = null;
+    let analyticsChart;
+    let studentExamState = null;
+
+    const byId = (id) => document.getElementById(id);
+    const getData = (key, fallback = []) => JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+    const setData = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+
+    const showLoading = (show) => byId('loadingOverlay').classList.toggle('active', show);
+    const toast = (msg) => alert(msg);
+
+    function addActivity(text) {
+      const activity = getData(storageKeys.activity);
+      activity.unshift({ text, time: new Date().toLocaleString() });
+      setData(storageKeys.activity, activity.slice(0, 12));
+      renderDashboard();
+    }
+
+    function navTo(targetId, btn) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      byId(targetId).classList.add('active');
+      if (btn) btn.classList.add('active');
+      byId('sectionTitle').textContent = btn ? btn.textContent.trim() : 'Dashboard';
+    }
+
+    function shuffle(arr) {
+      const clone = [...arr];
+      for (let i = clone.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [clone[i], clone[j]] = [clone[j], clone[i]];
+      }
+      return clone;
+    }
+
+    function toBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function validateQuestionForm(question) {
+      if (!question.text.trim()) return 'Question text is required.';
+      if (question.type === 'mcq') {
+        const values = Object.values(question.options);
+        if (values.some(v => !v.trim())) return 'All MCQ options are required.';
+      }
+      return null;
+    }
+
+    async function saveQuestion() {
+      const type = byId('qType').value;
+      const question = {
+        id: questionEditId || crypto.randomUUID(),
+        type,
+        marks: Number(byId('qMarks').value || 1),
+        text: byId('qText').value.trim(),
+        image: '',
+        options: {
+          A: byId('optA').value.trim(),
+          B: byId('optB').value.trim(),
+          C: byId('optC').value.trim(),
+          D: byId('optD').value.trim()
+        },
+        correct: byId('correctAns').value
+      };
+
+      const imageFile = byId('qImage').files[0];
+      if (imageFile) question.image = await toBase64(imageFile);
+
+      const error = validateQuestionForm(question);
+      if (error) return toast(error);
+
+      const questions = getData(storageKeys.questions);
+      const existingIndex = questions.findIndex(q => q.id === question.id);
+
+      if (existingIndex >= 0) {
+        question.image = question.image || questions[existingIndex].image;
+        questions[existingIndex] = question;
+        addActivity('Updated a question in bank.');
+      } else {
+        questions.push(question);
+        addActivity('Added a new question.');
+      }
+
+      setData(storageKeys.questions, questions);
+      clearQuestionForm();
+      byId('omrSheetPreview').innerHTML = "";
+      byId('omrCheckResult').textContent = "";
+      renderOmrHistory();
+      renderQuestions();
+      renderDashboard();
+    }
+
+    function clearQuestionForm() {
+      questionEditId = null;
+      byId('qText').value = '';
+      byId('qMarks').value = 1;
+      byId('qImage').value = '';
+      ['optA','optB','optC','optD'].forEach(id => byId(id).value = '');
+      byId('correctAns').value = 'A';
+      byId('saveQuestionBtn').textContent = 'Add Question';
+    }
+
+    function renderQuestions() {
+      const search = byId('searchQuestion').value.toLowerCase();
+      const filter = byId('filterType').value;
+      const questions = getData(storageKeys.questions)
+        .filter(q => (filter === 'all' || q.type === filter) && q.text.toLowerCase().includes(search));
+
+      byId('questionCounter').textContent = getData(storageKeys.questions).length;
+      byId('questionTableBody').innerHTML = questions.map((q, i) => {
+        const details = q.type === 'mcq'
+          ? `A) ${q.options.A}<br>B) ${q.options.B}<br>C) ${q.options.C}<br>D) ${q.options.D}<br><b>Ans: ${q.correct}</b>`
+          : `Written • Marks: ${q.marks}`;
+        return `<tr>
+          <td>${i + 1}</td>
+          <td>${q.type.toUpperCase()}</td>
+          <td>${q.text}${q.image ? `<br><img class="image-preview" src="${q.image}" alt="question image">` : ''}</td>
+          <td>${details}</td>
+          <td>
+            <button onclick="editQuestion('${q.id}')">Edit</button>
+            <button class="btn-danger" onclick="deleteQuestion('${q.id}')">Delete</button>
+          </td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="5">No questions found.</td></tr>';
+
+      if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
+    }
+
+    window.editQuestion = (id) => {
+      const q = getData(storageKeys.questions).find(item => item.id === id);
+      if (!q) return;
+      questionEditId = id;
+      byId('qType').value = q.type;
+      byId('qMarks').value = q.marks;
+      byId('qText').value = q.text;
+      byId('optA').value = q.options?.A || '';
+      byId('optB').value = q.options?.B || '';
+      byId('optC').value = q.options?.C || '';
+      byId('optD').value = q.options?.D || '';
+      byId('correctAns').value = q.correct || 'A';
+      byId('saveQuestionBtn').textContent = 'Update Question';
+      byId('mcqFields').classList.toggle('hidden', q.type !== 'mcq');
+    };
+
+    window.deleteQuestion = (id) => {
+      const questions = getData(storageKeys.questions).filter(q => q.id !== id);
+      setData(storageKeys.questions, questions);
+      addActivity('Deleted a question.');
+      renderQuestions();
+      renderDashboard();
+    };
+
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(getData(storageKeys.questions), null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'MegaPrep_QuestionBank.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function importJson(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!Array.isArray(parsed)) throw new Error();
+          setData(storageKeys.questions, parsed);
+          addActivity('Imported question bank from JSON.');
+          renderQuestions();
+          renderDashboard();
+        } catch {
+          toast('Invalid JSON file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function buildSet(questions, setCode, meta) {
+      const processed = shuffle(questions).map((q) => {
+        if (q.type !== 'mcq') return { ...q, shuffledOptions: null, correctMapped: '-' };
+        const entries = Object.entries(q.options);
+        const shuffledEntries = shuffle(entries);
+        const labels = ['A', 'B', 'C', 'D'];
+        const mappedOptions = {};
+        let correctMapped = 'A';
+        shuffledEntries.forEach(([originalKey, value], idx) => {
+          const label = labels[idx];
+          mappedOptions[label] = value;
+          if (originalKey === q.correct) correctMapped = label;
+        });
+        return { ...q, shuffledOptions: mappedOptions, correctMapped };
+      });
+
+      return { setCode, meta, questions: processed };
+    }
+
+    function renderExamPreview(exams) {
+      const preview = byId('examPreview');
+      const setPages = exams.map((set) => {
+        const qHtml = set.questions.map((q, idx) => {
+          const options = q.type === 'mcq'
+            ? `<ol class="option-list">${Object.entries(q.shuffledOptions).map(([k,v]) => `<li><span class="option-label">(${k})</span> ${v}</li>`).join('')}</ol>`
+            : `<p style="padding-left:34px; margin:6px 0 0;"><i>Write your answer in the answer script. (${q.marks || 1} marks)</i></p>`;
+          return `<div class="question-block">
+            <div class="question-line"><span class="question-no">${idx + 1}.</span><span>${q.text}</span></div>
+            ${q.image ? `<img class="image-preview" src="${q.image}" alt="question image">` : ''}
+            ${options}
+          </div>`;
+        }).join('');
+
+        return `<article class="preview-paper">
+          <header class="board-paper-header">
+            <h2>${set.meta.institute}</h2>
+            <h3>${set.meta.examName}</h3>
+            <p style="margin:0; font-size:.95rem;">Subject: <b>${set.meta.subject}</b></p>
+          </header>
+
+          <table class="board-meta">
+            <tr>
+              <td><b>Date:</b> ${set.meta.date || '-'}</td>
+              <td><b>Time:</b> ${set.meta.time}</td>
+              <td><b>Full Marks:</b> ${set.meta.fullMarks}</td>
+              <td><b>Set:</b> ${set.setCode}</td>
+            </tr>
+          </table>
+
+          <div class="board-instruction">
+            <b>Instructions:</b> (i) Answer all questions. (ii) For MCQ, choose the most appropriate option. (iii) Figures to the right indicate full marks.
+          </div>
+
+          ${qHtml}
+        </article>`;
+      }).join('<div class="pdf-page-break"></div>');
+
+      const answerKeyPage = exams.length ? `<article class="preview-paper">
+        <header class="board-paper-header">
+          <h2>Set-wise Answer Keys</h2>
+          <p style="margin:6px 0 0;">${exams[0]?.meta?.examName || ''} • ${exams[0]?.meta?.subject || ''}</p>
+        </header>
+        <div class="answer-sheet">
+          <div class="answer-grid">
+            ${exams.map((set) => {
+              const answerKey = set.questions
+                .map((q, idx) => `<span>${idx + 1}. ${q.type === 'mcq' ? q.correctMapped : '-'}</span>`)
+                .join(' ');
+              return `<div class="answer-item"><b>Set ${set.setCode}</b><br><div style="display:flex;flex-wrap:wrap;gap:8px 12px;">${answerKey}</div></div>`;
+            }).join('')}
+          </div>
+        </div>
+      </article>` : "";
+
+      preview.innerHTML = answerKeyPage ? `${setPages}<div class="pdf-page-break"></div>${answerKeyPage}` : setPages;
+
+      if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
+    }
+
+    function generateExam() {
+      const allQuestions = getData(storageKeys.questions).filter(q => q.type === 'mcq' || q.type === 'written');
+      if (!allQuestions.length) return toast('Add questions before generating exam sets.');
+
+      const setCount = Math.min(4, Math.max(1, Number(byId('setCount').value || 1)));
+      const count = Math.min(allQuestions.length, Math.max(1, Number(byId('questionsPerSet').value || 1)));
+      const meta = {
+        institute: byId('examInstitute').value.trim(),
+        examName: byId('examName').value.trim(),
+        subject: byId('examSubject').value.trim(),
+        date: byId('examDate').value,
+        time: byId('examTime').value.trim(),
+        fullMarks: byId('examMarks').value.trim()
+      };
+
+      if (!meta.institute || !meta.examName || !meta.subject) return toast('Institute, Exam Name, and Subject are required.');
+
+      const setCodes = ['A', 'B', 'C', 'D'];
+      const exams = Array.from({ length: setCount }, (_, idx) => buildSet(shuffle(allQuestions).slice(0, count), setCodes[idx], meta));
+
+      setData(storageKeys.exams, exams);
+      addActivity(`Generated ${setCount} exam set(s).`);
+      renderExamPreview(exams);
+      renderDashboard();
+    }
+
+    async function exportPdf() {
+      const exams = getData(storageKeys.exams);
+      if (!exams.length) return toast('Generate an exam first.');
+
+      showLoading(true);
+      try {
+        if (window.MathJax?.typesetPromise) await MathJax.typesetPromise();
+        await html2pdf().set({
+          margin: [8, 8, 8, 8],
+          filename: 'MegaPrep_Exam.pdf',
+          image: { type: 'jpeg', quality: 1 },
+          html2canvas: { scale: 3, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] }
+        }).from(byId('examPreview')).save();
+      } catch (err) {
+        console.error(err);
+        toast('PDF export failed. Check browser permissions and try again.');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function printA4Optimized() {
+      const exams = getData(storageKeys.exams);
+      if (!exams.length) return toast('Generate an exam first.');
+      try {
+        if (window.MathJax?.typesetPromise) await MathJax.typesetPromise();
+        window.print();
+      } catch (err) {
+        console.error(err);
+        toast('Print failed. Please try again.');
+      }
+    }
+
+    function renderResults() {
+      const results = getData(storageKeys.results);
+      byId('resultTableBody').innerHTML = results.map(r => `<tr><td>${r.name}</td><td>${r.score}</td><td>${r.total}</td><td>${r.time}</td></tr>`).join('')
+        || '<tr><td colspan="4">No student attempts yet.</td></tr>';
+    }
+
+    function renderDashboard() {
+      const questions = getData(storageKeys.questions);
+      const exams = getData(storageKeys.exams);
+      const results = getData(storageKeys.results);
+
+      byId('kpiQuestions').textContent = questions.length;
+      byId('kpiExams').textContent = exams.length;
+      byId('kpiAttempts').textContent = results.length;
+
+      const mcqCount = questions.filter(q => q.type === 'mcq').length;
+      const writtenCount = questions.filter(q => q.type === 'written').length;
+
+      if (analyticsChart) analyticsChart.destroy();
+      analyticsChart = new Chart(byId('analyticsChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['MCQ', 'Written', 'Exam Sets'],
+          datasets: [{
+            data: [mcqCount, writtenCount, exams.length],
+            backgroundColor: ['#5b6cff', '#20c997', '#ffb020']
+          }]
+        },
+        options: { plugins: { legend: { position: 'bottom' } } }
+      });
+
+      const activity = getData(storageKeys.activity);
+      byId('activityList').innerHTML = activity.map(a => `<li>${a.text} <span class="muted">(${a.time})</span></li>`).join('') || '<li class="muted">No activity yet.</li>';
+    }
+
+    function beginStudentExam() {
+      const name = byId('studentName').value.trim();
+      const questionCount = Number(byId('studentQCount').value || 1);
+      const durationMin = Number(byId('studentDuration').value || 1);
+      const mcqQuestions = getData(storageKeys.questions).filter(q => q.type === 'mcq');
+
+      if (!name) return toast('Student name is required.');
+      if (!mcqQuestions.length) return toast('No MCQ available in question bank.');
+
+      const selected = shuffle(mcqQuestions).slice(0, Math.min(questionCount, mcqQuestions.length));
+      studentExamState = {
+        name,
+        questions: selected,
+        endTime: Date.now() + durationMin * 60 * 1000,
+        timer: null
+      };
+
+      byId('studentSetup').classList.add('hidden');
+      byId('studentExamCard').classList.remove('hidden');
+      byId('studentScoreCard').classList.add('hidden');
+
+      byId('studentQuestions').innerHTML = selected.map((q, i) => `
+        <div class="question-block">
+          <p><b>${i + 1}.</b> ${q.text}</p>
+          <div>${['A','B','C','D'].map(letter => `<label style="display:block;"><input type="radio" name="q_${q.id}" value="${letter}"> ${letter}. ${q.options[letter]}</label>`).join('')}</div>
+        </div>
+      `).join('');
+
+      updateTimer();
+      studentExamState.timer = setInterval(updateTimer, 1000);
+      if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
+    }
+
+    function updateTimer() {
+      if (!studentExamState) return;
+      const remaining = Math.max(0, studentExamState.endTime - Date.now());
+      const min = String(Math.floor(remaining / 60000)).padStart(2, '0');
+      const sec = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+      byId('examTimer').textContent = `${min}:${sec}`;
+      if (remaining <= 0) submitStudentExam(true);
+    }
+
+    function submitStudentExam(auto = false) {
+      if (!studentExamState) return;
+      clearInterval(studentExamState.timer);
+
+      let score = 0;
+      studentExamState.questions.forEach(q => {
+        const checked = document.querySelector(`input[name="q_${q.id}"]:checked`);
+        if (checked && checked.value === q.correct) score++;
+      });
+
+      const result = {
+        name: studentExamState.name,
+        score,
+        total: studentExamState.questions.length,
+        time: new Date().toLocaleString()
+      };
+      const results = getData(storageKeys.results);
+      results.unshift(result);
+      setData(storageKeys.results, results.slice(0, 100));
+      addActivity(`${result.name} submitted exam ${auto ? '(auto)' : '(manual)'}: ${score}/${result.total}.`);
+
+      byId('studentExamCard').classList.add('hidden');
+      byId('studentScoreCard').classList.remove('hidden');
+      byId('studentScoreCard').innerHTML = `<h3>Score: ${score}/${result.total}</h3><p class="muted">${auto ? 'Auto-submitted due to timer end.' : 'Submitted successfully.'}</p><button id="newExamBtn" class="btn-primary">Take Another Exam</button>`;
+      byId('newExamBtn').onclick = resetStudentMode;
+
+      renderResults();
+      renderDashboard();
+      renderOmrHistory();
+      studentExamState = null;
+    }
+
+    function resetStudentMode() {
+      byId('studentSetup').classList.remove('hidden');
+      byId('studentExamCard').classList.add('hidden');
+      byId('studentScoreCard').classList.add('hidden');
+    }
+
+    function getSetAnswerKey(setCode) {
+      const exams = getData(storageKeys.exams);
+      const selectedSet = exams.find(set => set.setCode === setCode);
+      if (!selectedSet) return null;
+      return selectedSet.questions.map((q) => q.type === 'mcq' ? q.correctMapped : '-');
+    }
+
+    function generateOmrSheet() {
+      const setCode = byId('omrSetCode').value;
+      const examTitle = byId('omrExamTitle').value.trim() || 'OMR Exam';
+      const student = byId('omrStudentName').value.trim() || '________________';
+      const roll = byId('omrRoll').value.trim() || '________________';
+      const key = getSetAnswerKey(setCode);
+      if (!key) return toast('Generate exam sets first. Then create OMR for a valid set.');
+      const count = Math.min(Number(byId('omrQuestionCount').value || key.length), key.length);
+
+      const rows = Array.from({ length: count }, (_, i) => `<tr><td>${i + 1}</td><td>(A)</td><td>(B)</td><td>(C)</td><td>(D)</td></tr>`).join('');
+      byId('omrSheetPreview').innerHTML = `
+        <h3 style="text-align:center; margin:0;">${examTitle}</h3>
+        <p style="text-align:center; margin:6px 0 10px;">OMR Answer Sheet • Set ${setCode}</p>
+        <p><b>Name:</b> ${student}</p>
+        <p><b>Roll:</b> ${roll}</p>
+        <table class="board-meta">
+          <tr><td><b>Set</b></td><td>${setCode}</td><td><b>Total Questions</b></td><td>${count}</td></tr>
+        </table>
+        <div class="board-instruction">Fill one option per question using dark pen mark.</div>
+        <table class="board-meta">
+          <thead><tr><td><b>Q No.</b></td><td><b>A</b></td><td><b>B</b></td><td><b>C</b></td><td><b>D</b></td></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+      addActivity(`Generated OMR sheet for Set ${setCode}.`);
+    }
+
+    async function saveOmrSubmissionToDatabase(record) {
+      try {
+        await fetch('/api/omr-submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(record)
+        });
+      } catch (_e) {
+        // local mode fallback: ignore network error
+      }
+    }
+
+    async function syncOmrSubmissionsFromDatabase() {
+      try {
+        const res = await fetch('/api/omr-submissions');
+        if (!res.ok) return;
+        const rows = await res.json();
+        if (!Array.isArray(rows)) return;
+        setData(storageKeys.omrSubmissions, rows.slice(0, 200));
+        renderOmrHistory();
+      } catch (_e) {
+        // local mode fallback
+      }
+    }
+
+    function renderOmrHistory() {
+      const rows = getData(storageKeys.omrSubmissions);
+      byId('omrHistoryBody').innerHTML = rows.map(r => `<tr><td>${r.roll}</td><td>${r.setCode}</td><td>${r.score}</td><td>${r.total}</td><td>${r.time}</td></tr>`).join('') || '<tr><td colspan="5">No OMR submissions yet.</td></tr>';
+    }
+
+    async function checkOmr() {
+      const roll = byId('checkRoll').value.trim();
+      const setCode = byId('checkSetCode').value;
+      const key = getSetAnswerKey(setCode);
+      if (!roll) return toast('Roll number is required for OMR checking.');
+      if (!key) return toast('No answer key found for this set. Generate exam sets first.');
+
+      const answers = byId('checkAnswersText').value
+        .toUpperCase()
+        .split(/[^A-D]+/)
+        .filter(Boolean);
+
+      if (!answers.length) return toast('Enter student answers before checking OMR.');
+
+      const total = Math.min(key.length, answers.length);
+      let score = 0;
+      for (let i = 0; i < total; i++) {
+        if (answers[i] === key[i]) score++;
+      }
+
+      const record = {
+        roll,
+        setCode,
+        score,
+        total,
+        answers: answers.slice(0, total),
+        time: new Date().toLocaleString()
+      };
+
+      const local = getData(storageKeys.omrSubmissions);
+      local.unshift(record);
+      setData(storageKeys.omrSubmissions, local.slice(0, 200));
+      await saveOmrSubmissionToDatabase(record);
+      renderOmrHistory();
+
+      byId('omrCheckResult').innerHTML = `<b>Result:</b> ${score}/${total} (${((score / total) * 100).toFixed(2)}%)`;
+      addActivity(`OMR checked for roll ${roll} (Set ${setCode}) => ${score}/${total}.`);
+    }
+
+    function printOmrSheet() {
+      if (!byId('omrSheetPreview').innerText.trim()) return toast('Generate OMR sheet first.');
+      const original = byId('examPreview').innerHTML;
+      byId('examPreview').innerHTML = byId('omrSheetPreview').outerHTML;
+      window.print();
+      byId('examPreview').innerHTML = original;
+    }
+
+    function resetSystem() {
+      Object.values(storageKeys).forEach(key => localStorage.removeItem(key));
+      addActivity('System reset executed.');
+      renderQuestions();
+      renderResults();
+      renderDashboard();
+      byId('examPreview').innerHTML = '';
+      resetStudentMode();
+      clearQuestionForm();
+      byId('omrSheetPreview').innerHTML = "";
+      byId('omrCheckResult').textContent = "";
+      renderOmrHistory();
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('.nav-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => navTo(btn.dataset.target, btn));
+      });
+
+      byId('qType').addEventListener('change', (e) => byId('mcqFields').classList.toggle('hidden', e.target.value !== 'mcq'));
+      byId('saveQuestionBtn').addEventListener('click', saveQuestion);
+      byId('clearQuestionBtn').addEventListener('click', clearQuestionForm);
+      byId('searchQuestion').addEventListener('input', renderQuestions);
+      byId('filterType').addEventListener('change', renderQuestions);
+      byId('exportJsonBtn').addEventListener('click', exportJson);
+      byId('importJsonInput').addEventListener('change', (e) => e.target.files[0] && importJson(e.target.files[0]));
+
+      byId('generateExamBtn').addEventListener('click', generateExam);
+      byId('exportPdfBtn').addEventListener('click', exportPdf);
+      byId('printA4Btn').addEventListener('click', printA4Optimized);
+
+      byId('startExamBtn').addEventListener('click', beginStudentExam);
+      byId('submitExamBtn').addEventListener('click', () => submitStudentExam(false));
+
+      byId('generateOmrSheetBtn').addEventListener('click', generateOmrSheet);
+      byId('printOmrSheetBtn').addEventListener('click', printOmrSheet);
+      byId('checkOmrBtn').addEventListener('click', checkOmr);
+
+      byId('openResetModal').addEventListener('click', () => byId('resetModal').classList.add('active'));
+      byId('cancelResetBtn').addEventListener('click', () => byId('resetModal').classList.remove('active'));
+      byId('confirmResetBtn').addEventListener('click', () => {
+        byId('resetModal').classList.remove('active');
+        resetSystem();
+      });
+
+      byId('loginBtn').addEventListener('click', () => {
+        const user = byId('loginUser').value.trim();
+        const pass = byId('loginPass').value.trim();
+        const valid = (user === 'admin' && pass === 'admin123') || (user && pass);
+        byId('loginError').classList.toggle('hidden', valid);
+        if (!valid) return;
+        byId('loginPage').classList.add('hidden');
+        byId('app').classList.add('active');
+      });
+
+      byId('logoutBtn').addEventListener('click', () => {
+        byId('app').classList.remove('active');
+        byId('loginPage').classList.remove('hidden');
+      });
+    }
+
+    function init() {
+      bindEvents();
+      renderQuestions();
+      renderResults();
+      renderDashboard();
+      renderOmrHistory();
+      syncOmrSubmissionsFromDatabase();
+
+      const exams = getData(storageKeys.exams);
+      if (exams.length) renderExamPreview(exams);
+    }
+
+    init();
+  </script>
+</body>
+</html>
